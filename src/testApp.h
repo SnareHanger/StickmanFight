@@ -32,8 +32,12 @@ public:
     
     string				currentFileName;
     int     imgCtr;
+    int     imgTimer;
     
     float threshold;
+    
+    ofImage actionImage;
+    ofImage bgImage;
 	
     ofxOpenNIContext	recordContext, playContext;
     ofxDepthGenerator	recordDepth, playDepth;

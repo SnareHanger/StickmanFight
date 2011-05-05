@@ -13,8 +13,13 @@ class contactPoint {
     
 public:
     contactPoint(ofxVec3f newPoint);
+    void ageIt();
     
     ofxVec3f thePoint;
     int startTime;
+    int lifeTimer;
+    bool drawIt;
+    
+    bool killIt;
     
 };

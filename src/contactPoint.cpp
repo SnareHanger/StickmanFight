@@ -10,5 +10,17 @@
 
 contactPoint::contactPoint(ofxVec3f newPoint){
     thePoint = newPoint; //ofxVec3f(newPoint.x * 2, newPoint.y * 2, newPoint.z);
-    startTime = ofGetElapsedTimeMillis(); 
+    startTime = ofGetElapsedTimeMillis();
+    lifeTimer = 500;
+    killIt = false;
+    drawIt = true;
+    
+}
+
+void contactPoint::ageIt(){    
+    if(lifeTimer == 0)
+        killIt = true;
+    else
+        lifeTimer--;
 };
+

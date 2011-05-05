@@ -16,10 +16,14 @@ void testApp::setup() {
     
 	ofBackground(255, 255, 255);
     
-    threshold = 50;
-    imgCtr = -1;
+    threshold = 100;
+    imgCtr = 0;
+    
+    
+    bgImage.loadImage("paper_texture2.jpg");
     
     setupActionImages();
+    imgTimer = 0;
 	
 }
 
@@ -27,14 +31,22 @@ void testApp::setupActionImages(){
     for (int i = 0; i < 6; i++) {
         char imageName[255];
         
-        sprintf(imageName, "pows%i.png", imgCtr+1);
+        sprintf(imageName, "pow%i.png", i);
         ofImage actionImage;
         actionImage.loadImage(imageName);
-        actionImage.allocate(640, 480, OF_IMAGE_COLOR);
         actionImage.resize(160, 120);
         
         actionImages.push_back(actionImage);
     }
+    //    
+    
+    //    char imageName[255];
+    //    
+    ////    sprintf(imageName, "pows0.png", imgCtr+1);
+    //    
+    //    actionImage.loadImage("pow0.png");
+    //    actionImage.resize(160, 120);
+    
     
     
 }
@@ -80,13 +92,15 @@ void testApp::testLimbHits(){
     if(hasTwoPlayers){
         //check player1 ends against all of player 2
         
-        contactPoints.clear();
+        if(contactPoints.size() > 20)
+            contactPoints.clear();
         
         //player1
         for (int i = 0; i < p2LimbVecs.size(); i++) {
             ofxVec3f limbToLimb = ofxVec3f(p1Left_lower_armEnd - p2LimbVecs[i]);
             if(limbToLimb.length() < threshold){
                 contactPoints.push_back(contactPoint(p1Left_lower_armEnd));
+                //                imgDrawPoints.push_back(p1Left_lower_armEnd);
             } 
         }
         
@@ -94,6 +108,7 @@ void testApp::testLimbHits(){
             ofxVec3f limbToLimb = ofxVec3f(p1Right_lower_armEnd - p2LimbVecs[i]);
             if(limbToLimb.length() < threshold){
                 contactPoints.push_back(contactPoint(p1Right_lower_armEnd));
+                //                imgDrawPoints.push_back(p1Right_lower_armEnd);
             } 
         }
         
@@ -101,6 +116,7 @@ void testApp::testLimbHits(){
             ofxVec3f limbToLimb = ofxVec3f(p1Left_lower_legEnd - p2LimbVecs[i]);
             if(limbToLimb.length() < threshold){
                 contactPoints.push_back(contactPoint(p1Left_lower_legEnd));
+                //                imgDrawPoints.push_back(p1Left_lower_legEnd);
             } 
         }
         
@@ -108,6 +124,7 @@ void testApp::testLimbHits(){
             ofxVec3f limbToLimb = ofxVec3f(p1Right_lower_legEnd - p2LimbVecs[i]);
             if(limbToLimb.length() < threshold){
                 contactPoints.push_back(contactPoint(p1Right_lower_legEnd));
+                //                imgDrawPoints.push_back(p1Right_lower_legEnd);
             } 
         }
         
@@ -116,13 +133,15 @@ void testApp::testLimbHits(){
             ofxVec3f limbToLimb = ofxVec3f(p2Left_lower_armEnd - p1LimbVecs[i]);
             if(limbToLimb.length() < threshold){
                 contactPoints.push_back(contactPoint(p2Left_lower_armEnd));
+                //                imgDrawPoints.push_back(p2Left_lower_armEnd);
             } 
         }
         
         for (int i = 0; i < p1LimbVecs.size(); i++) {
             ofxVec3f limbToLimb = ofxVec3f(p2Right_lower_armEnd - p1LimbVecs[i]);
             if(limbToLimb.length() < threshold){
-                contactPoints.push_back(contactPoint(p2Right_lower_armEnd));    
+                contactPoints.push_back(contactPoint(p2Right_lower_armEnd)); 
+                //                imgDrawPoints.push_back(p2Right_lower_armEnd);
             }
         }
         
@@ -130,6 +149,7 @@ void testApp::testLimbHits(){
             ofxVec3f limbToLimb = ofxVec3f(p2Left_lower_legEnd - p1LimbVecs[i]);
             if(limbToLimb.length() < threshold){
                 contactPoints.push_back(contactPoint(p2Left_lower_legEnd));  
+                //                imgDrawPoints.push_back(p2Left_lower_legEnd);
             } 
         }
         
@@ -137,16 +157,18 @@ void testApp::testLimbHits(){
             ofxVec3f limbToLimb = ofxVec3f(p2Right_lower_legEnd - p1LimbVecs[i]);
             if(limbToLimb.length() < threshold){
                 contactPoints.push_back(contactPoint(p2Right_lower_legEnd));
+                //                imgDrawPoints.push_back(p2Right_lower_legEnd);
             } 
         }
         
-        for(vector<contactPoint>::iterator iter = contactPoints.begin(); iter != contactPoints.end(); ++iter){        
-            if((ofGetElapsedTimeMillis() - iter->startTime) > 1000){
-                contactPoints.erase(iter);
-            }
+        for (vector<contactPoint>::iterator iter = contactPoints.begin(); iter != contactPoints.end(); ++iter) {
             
-            cout << "x: " << iter->thePoint.x << "y: " << iter->thePoint.y << endl;
+            if(iter->lifeTimer < 500){
+                iter->drawIt = false;           
+            }
         }
+        
+        
         
     }
 }
@@ -260,7 +282,21 @@ void testApp::setupLimbs(){
 
 //--------------------------------------------------------------
 void testApp::draw(){
-	
+    ofSetColor(255, 255, 255);
+    ofFill();
+    ofEnableAlphaBlending();
+    //    cout << "imgCtr: " << imgCtr << endl;
+    
+    bgImage.draw(1,1);
+    ofDisableAlphaBlending();
+    
+    ofSetColor(0, 0, 0);
+    ofNoFill();
+    
+    
+	ofSetColor(255, 255, 255);
+    
+    
 	glPushMatrix();
 	glScalef(0.75, 0.75, 0.75);
 	
@@ -275,22 +311,68 @@ void testApp::draw(){
             glScalef(2.0, 2.0, 0);
             ofSetColor(0, 0, 0);
             drawStickMen();
-			//recordUser.draw();
-            for (int i = 0; i < contactPoints.size(); i++) {
-                ofSetColor(255, 255, 255);
-                if(imgCtr > 5)
-                    imgCtr = -1;
-                else 
-                    imgCtr++;
-                actionImages[imgCtr].draw(contactPoints[i].thePoint.x, contactPoints[i].thePoint.y);
+			//recordUser.draw(); 
+            
+            for(vector<contactPoint>::iterator iter = contactPoints.begin(); iter != contactPoints.end(); ++iter){  
+                iter->ageIt();
                 
+                if(iter->drawIt){
+                    
+                    
+                    ofSetColor(255, 255, 255);
+                    
+                    if(imgTimer == 0){
+                        imgTimer = ofGetElapsedTimeMillis();
+                    }
+                    
+                    if((ofGetElapsedTimeMillis() - imgTimer) > 1000){
+                        imgCtr++;
+                        
+                        if (imgCtr > 5) {
+                            imgCtr = 0;
+                        } 
+                        imgTimer = 0;
+                    }
+                    
+                    ofSetColor(255, 255, 255);
+                    ofFill();
+                    ofEnableAlphaBlending();
+                    
+                    //DRAW IMAGE HERE
+                    if (iter->thePoint.x - 100 > 0 && iter->thePoint.y > 1 && iter->thePoint.y < 958) {
+                        actionImages[imgCtr].draw(iter->thePoint.x - 100, iter->thePoint.y);
+                    }
+                    
+                    
+                    ofDisableAlphaBlending();
+                    
+                    ofSetColor(0, 0, 0);
+                    ofNoFill();
+                    
+                    
+                }
+                
+                if(iter->killIt)
+                    iter = contactPoints.erase(iter);
             }
+            
+            
             glPopMatrix();
             
         }
 	} 
 	
 	glPopMatrix();
+    
+    //    ofSetColor(255, 255, 255);
+    //    ofFill();
+    //    ofEnableAlphaBlending();
+    //    actionImage.draw(2, 2);
+    //    ofDisableAlphaBlending();
+    //    
+    //    ofSetColor(0, 0, 0);
+    //    ofNoFill();
+    
 }
 
 void testApp::drawStickMen(){
@@ -300,6 +382,7 @@ void testApp::drawStickMen(){
         float p1HipCenterX = (p1HipBegin.x + p1HipEnd.x)/2;
         float p1HipCenterY = (p1HipBegin.y + p1HipEnd.y)/2;
         
+        glLineWidth(4);
         ofCircle(p1NeckBegin.x, p1NeckBegin.y, 50);
         ofLine(p1NeckEnd.x, p1NeckEnd.y, (p1HipBegin.x + p1HipEnd.x)/2, (p1HipBegin.y + p1HipEnd.y)/2);
         ofLine(p1NeckEnd.x, p1NeckEnd.y, p1Left_lower_armBegin.x, p1Left_lower_armBegin.y);
@@ -359,7 +442,7 @@ void testApp::keyReleased(int key){
 
 //--------------------------------------------------------------
 void testApp::mouseMoved(int x, int y ){
-
+    
 }
 
 //--------------------------------------------------------------
